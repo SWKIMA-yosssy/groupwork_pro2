@@ -13,8 +13,8 @@ void opt3_2(int *new_path, int n, double *new_path_length) {
     selected_nodes[i] = createrand(n);
   }
 
-  opt_2(selected_nodes, opted_path, path_length);
-  opt_3(selected_nodes, opted_path, path_length);
+  opt_2(new_path, selected_nodes, opted_path, path_length);
+  opt_3(new_path, selected_nodes, opted_path, path_length);
 
   for (i = 0; i < 7; i++) {
     if (min_path_length > path_length[i]) {

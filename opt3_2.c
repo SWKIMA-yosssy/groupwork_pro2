@@ -36,6 +36,25 @@ void opt_3_2_cal_length(int *pre_path, int n, int *selected_nodes,
                      geograph_distance(B, F);
   }
 }
+
+void reverse(int *new_path, int n, int start, int end) {
+  int temp;
+  while (start < end) {
+    temp = new_path[start];
+    new_path[start] = new_path[end];
+    new_path[end] = temp;
+    if (start == n - 1) {
+      start = 0;
+    } else {
+      start++;
+    }
+    if (end == 0) {
+      end = n - 1;
+    } else {
+      end--;
+    }
+  }
+}
 void opt3_2_once(int *new_path, int n, double *new_path_length, int node1,
                  int node2, int node3, int whether_geograph) {
   double path_length[7];
@@ -61,6 +80,33 @@ void opt3_2_once(int *new_path, int n, double *new_path_length, int node1,
   // reflect outcome
   if (min_path_num != -1) {
     *new_path_length = min_path_length;
-  } else if (i == 0) {
+    if (min_path_num == 0) {
+      reverse(new_path, n, node1, node3);
+      reverse(new_path, n, node2, node3);
+    } else if (min_path_num == 1) {
+      reverse(new_path, n, node1, node2);
+      reverse(new_path, n, node2, node3);
+    } else if (min_path_num == 2) {
+      reverse(new_path, n, node1, node2);
+      reverse(new_path, n, node1, node3);
+    } else if (min_path_num == 3) {
+      reverse(new_path, n, node1, node2);
+    } else if (min_path_num == 4) {
+      reverse(new_path, n, node2, node3);
+    } else if (min_path_num == 5) {
+      reverse(new_path, n, node1, node3);
+    } else if (min_path_num == 6) {
+      reverse(new_path, n, node1, node3);
+      reverse(new_path, n, node2, node3);
+    } else if (min_path_num == 3) {
+      reverse(new_path, n, node1, node2);
+    } else if (min_path_num == 4) {
+      reverse(new_path, n, node2, node3);
+    } else if (min_path_num == 5) {
+      reverse(new_path, n, node1, node3);
+    } else if (min_path_num == 6) {
+      reverse(new_path, n, node1, node3);
+      reverse(new_path, n, node2, node3);
+    }
   }
 }

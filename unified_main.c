@@ -3,14 +3,16 @@
 #include <stdlib.h>
 #include <time.h>
 #define maxN 500
+#define inf 1000000
+#define earthr 6378.388  // 地球の半径
+double dist[maxN][maxN]; // 重み行列
+                         // visited[maxN]
 
 /*ユークリッド*/
 struct city {
   double x;
   double y;
 };
-
-struct city cities[maxN];
 
 double euclid_distance(struct city *cities, int a, int b) {
   double dx = cities[a].x - cities[b].x;
@@ -19,23 +21,22 @@ double euclid_distance(struct city *cities, int a, int b) {
 }
 
 /*地理的距離*/
-#define earthr 6378.388 // 地球の半径
 
 // 度をラジアンに変換する関数
 double deg2rad(double deg) { return deg * (M_PI / 180.0); }
 
 /*地理的距離を求める関数*/
-double giograph_distance(struct city *cities, int a, int b) {
-    double dlat = deg2rad(cities[a].x-cities[b].x);
-    double dlon = deg2rad(cities[a].y-cities[b].y);
-    double A = sin(dlat / 2) * sin(dlat / 2) +
-               cos(deg2rad(cities[b].x)) * cos(deg2rad(cities[a].x)) *
-               sin(dlon / 2) * sin(dlon / 2);
-    double C = 2 * atan2(sqrt(A), sqrt(1 - A));
-    return earthr * C;
+double geograph_distance(struct city *cities, int a, int b) {
+  double dlat = deg2rad(cities[a].x - cities[b].x);
+  double dlon = deg2rad(cities[a].y - cities[b].y);
+  double A = sin(dlat / 2) * sin(dlat / 2) + cos(deg2rad(cities[b].x)) *
+                                                 cos(deg2rad(cities[a].x)) *
+                                                 sin(dlon / 2) * sin(dlon / 2);
+  double C = 2 * atan2(sqrt(A), sqrt(1 - A));
+  return earthr * C;
 }
 double distance(
-    int *path, int n,
+    struct city *cities, int *path, int n,
     int whether_geograph) { // int *path is array of root, n is number of node
   // int whether_geograph = 0 means data is given as euclidean, =1 means as
   // geographical
@@ -45,20 +46,18 @@ double distance(
   if (whether_geograph ==
       0) { // calculate length of whole root of euclidean data
     for (i = 0; i < n - 1; i++) {
-      total_distance += euclid_distance(path[i], path[i + 1]);
+      total_distance += euclid_distance(cities, path[i], path[i + 1]);
     }
-    total_distance += euclid_distance(path[n - 1], path[0]);
+    total_distance += euclid_distance(cities, path[n - 1], path[0]);
   } else {
     for (i = 0; i < n - 1; i++) {
-      total_distance += geograph_distance(path[i], path[i + 1]);
+      total_distance += geograph_distance(cities, path[i], path[i + 1]);
     }
-    total_distance += geograph_distance(path[n - 1], path[0]);
+    total_distance += geograph_distance(cities, path[n - 1], path[0]);
   }
   return total_distance;
 }
 /*mainで必要なもの*/
-double dist[maxN][maxN]; // 重み行列
-                         // visited[maxN]
 
 /*distとvisitedの初期化*/
 // for(int i = 0;i < N ;i++){for(int j;j<N;j++){dist[i][j] == -1}}
@@ -107,42 +106,57 @@ void insert_nodes(int new_path[maxN], int *path_size, int node) {
   new_path[best_position] = node;
   (*path_size)++;
 }
-void opt_3_2_cal_length(int *pre_path, int n, int *selected_nodes,
-                        double *path_length, int whether_geograph) {
+void opt_3_2_cal_length(struct city *cities, int *pre_path, int n,
+                        int *selected_nodes, double *path_length,
+                        int whether_geograph) {
   int A = selected_nodes[0], B = pre_path[(selected_nodes[0] + 1) % n];
   int C = selected_nodes[1], D = pre_path[(selected_nodes[1] + 1) % n];
   int E = selected_nodes[2], F = pre_path[(selected_nodes[2] + 1) % n];
   // initial state of node are circle: state 3 in paper
   if (whether_geograph == 0) { // data is given as euclidean data
-    path_length[0] =
-        euclid_distance(A, E) + euclid_distance(B, D) + euclid_distance(C, F);
-    path_length[1] =
-        euclid_distance(A, D) + euclid_distance(E, C) + euclid_distance(B, F);
-    path_length[2] =
-        euclid_distance(A, C) + euclid_distance(B, E) + euclid_distance(D, F);
-    path_length[3] =
-        euclid_distance(A, C) + euclid_distance(B, D) + euclid_distance(E, F);
-    path_length[4] =
-        euclid_distance(A, B) + euclid_distance(C, E) + euclid_distance(D, F);
-    path_length[5] =
-        euclid_distance(A, D) + euclid_distance(E, B) + euclid_distance(C, F);
-    path_length[6] =
-        euclid_distance(A, E) + euclid_distance(D, C) + euclid_distance(B, F);
+    path_length[0] = euclid_distance(cities, A, E) +
+                     euclid_distance(cities, B, D) +
+                     euclid_distance(cities, C, F);
+    path_length[1] = euclid_distance(cities, A, D) +
+                     euclid_distance(cities, E, C) +
+                     euclid_distance(cities, B, F);
+    path_length[2] = euclid_distance(cities, A, C) +
+                     euclid_distance(cities, B, E) +
+                     euclid_distance(cities, D, F);
+    path_length[3] = euclid_distance(cities, A, C) +
+                     euclid_distance(cities, B, D) +
+                     euclid_distance(cities, E, F);
+    path_length[4] = euclid_distance(cities, A, B) +
+                     euclid_distance(cities, C, E) +
+                     euclid_distance(cities, D, F);
+    path_length[5] = euclid_distance(cities, A, D) +
+                     euclid_distance(cities, E, B) +
+                     euclid_distance(cities, C, F);
+    path_length[6] = euclid_distance(cities, A, E) +
+                     euclid_distance(cities, D, C) +
+                     euclid_distance(cities, B, F);
   } else {
-    path_length[0] = geograph_distance(A, E) + geograph_distance(B, D) +
-                     geograph_distance(C, F);
-    path_length[1] = geograph_distance(A, D) + geograph_distance(E, C) +
-                     geograph_distance(B, F);
-    path_length[2] = geograph_distance(A, C) + geograph_distance(B, E) +
-                     geograph_distance(D, F);
-    path_length[3] = geograph_distance(A, C) + geograph_distance(B, D) +
-                     geograph_distance(E, F);
-    path_length[4] = geograph_distance(A, B) + geograph_distance(C, E) +
-                     geograph_distance(D, F);
-    path_length[5] = geograph_distance(A, D) + geograph_distance(E, B) +
-                     geograph_distance(C, F);
-    path_length[6] = geograph_distance(A, E) + geograph_distance(D, C) +
-                     geograph_distance(B, F);
+    path_length[0] = geograph_distance(cities, A, E) +
+                     geograph_distance(cities, B, D) +
+                     geograph_distance(cities, C, F);
+    path_length[1] = geograph_distance(cities, A, D) +
+                     geograph_distance(cities, E, C) +
+                     geograph_distance(cities, B, F);
+    path_length[2] = geograph_distance(cities, A, C) +
+                     geograph_distance(cities, B, E) +
+                     geograph_distance(cities, D, F);
+    path_length[3] = geograph_distance(cities, A, C) +
+                     geograph_distance(cities, B, D) +
+                     geograph_distance(cities, E, F);
+    path_length[4] = geograph_distance(cities, A, B) +
+                     geograph_distance(cities, C, E) +
+                     geograph_distance(cities, D, F);
+    path_length[5] = geograph_distance(cities, A, D) +
+                     geograph_distance(cities, E, B) +
+                     geograph_distance(cities, C, F);
+    path_length[6] = geograph_distance(cities, A, E) +
+                     geograph_distance(cities, D, C) +
+                     geograph_distance(cities, B, F);
   }
 }
 
@@ -164,19 +178,23 @@ void reverse(int *new_path, int n, int start, int end) {
     }
   }
 }
-void opt3_2_once(int *new_path, int n, double *new_path_length, int node1,
-                 int node2, int node3, int whether_geograph) {
+void opt3_2_once(struct city *cities, int *new_path, int n,
+                 double *new_path_length, int node1, int node2, int node3,
+                 int whether_geograph) {
   double path_length[7];
   int selected_nodes[3] = {node1, node2,
                            node3}; // store selected node numbers used in n-opt
                                    // int opted_path[7][n];  // store total node
                                    // list of each roots. ith global array.
-  double min_path_length = *new_path_length;
+  double min_path_length;
   int min_path_num = -1; // number of index which gives minimum length
   // -1 means no change
   int i;
+  if (whether_geograph == 0) {
+    min_path_length = euclid_distance(cities, node1, )
+  }
 
-  opt_3_2_cal_length(new_path, n, selected_nodes, path_length,
+  opt_3_2_cal_length(cities, new_path, n, selected_nodes, path_length,
                      whether_geograph);
 
   for (i = 0; i < 7; i++) {
@@ -221,21 +239,26 @@ void opt3_2_once(int *new_path, int n, double *new_path_length, int node1,
 }
 int main(void) {
   int N, i, j;
+  struct city cities[maxN]; // city's data structure :array
   int new_path[maxN];
   int visited[maxN];
   int path_size = 0;
   double new_path_length;
-  double best_path_length = INF;
+  double best_path_length = inf;
   int best_path[maxN];
+  int whether_geograph;     // 0: euclidean 1:geographical
   double time_limit = 60.0; // 計算時間制限（秒）
   clock_t start_t, end_t;
   double utime;
   char fname[128];
   FILE *fp;
+  int buf;
 
   printf("input filename: ");
   scanf("%s", fname);
   fp = fopen(fname, "r");
+  printf("input data's type 0:euclidean 1:geographical\n");
+  scanf("%d", &whether_geograph);
 
   if (fp == NULL) {
     printf("Error: Unable to open file.\n");
@@ -244,7 +267,7 @@ int main(void) {
 
   fscanf(fp, "%d", &N); // 頂点数を読み込む
   for (i = 0; i < N; i++) {
-    fscanf(fp, "%d %lf %lf", &cities[i].id, &cities[i].x,
+    fscanf(fp, "%d %lf %lf", &buf, &cities[i].x,
            &cities[i].y); // 座標を読み込む
   }
   fclose(fp);
@@ -252,7 +275,7 @@ int main(void) {
   // 距離行列の計算
   for (i = 0; i < N; i++) {
     for (j = 0; j < N; j++) {
-      dist[i][j] = euclid_distance(i, j);
+      dist[i][j] = euclid_distance(cities, i, j);
     }
   }
 
@@ -271,7 +294,7 @@ int main(void) {
 
     while (path_size < N) {
       int farthest = find_farthest_node(N, visited);
-      insert_nodes(new_path, &path_size, dist, farthest);
+      insert_nodes(new_path, &path_size, farthest);
       visited[farthest] = 1;
     }
 
@@ -283,7 +306,8 @@ int main(void) {
       int node1 = createrand(N);
       int node2 = createrand(N);
       int node3 = createrand(N);
-      opt3_2_once(new_path, path_size, &new_path_length, node1, node2, node3);
+      opt3_2_once(cities, new_path, path_size, &new_path_length, node1, node2,
+                  node3, whether_geograph);
     }
 
     end_t = clock();

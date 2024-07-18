@@ -250,6 +250,7 @@ int opt3_2_once(struct city *cities, int *new_path, int n,
       reverse(new_path, n, node1, node3);
       reverse(new_path, n, node2, node3);
     }
+    *new_path_length = distance(cities, new_path, n, whether_geograph);
     return 1;
   } else {
     return 0;
@@ -266,8 +267,8 @@ int main(void) {
   double new_path_length;
   double best_path_length = inf;
   int best_path[maxN];
-  int whether_geograph;     // 0: euclidean 1:geographical
-  double time_limit = 60.0; // 計算時間制限（秒）
+  int whether_geograph;         // 0: euclidean 1:geographical
+  double time_limit = 1.034654; // 計算時間制限（秒）
   clock_t start_t, end_t;
   double utime;
   char fname[128];

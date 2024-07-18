@@ -8,6 +8,10 @@
 double dist[maxN][maxN]; // 重み行列
                          // visited[maxN]
 
+int createrand(int n) { // n is number of nodes
+  srand(time(NULL));
+  return rand() % n;
+}
 /*ユークリッド*/
 struct city {
   double x;
@@ -88,7 +92,7 @@ int find_farthest_node(int N, int visited[maxN]) {
 // 点をツアーに挿入する関数
 void insert_nodes(int new_path[maxN], int *path_size, int node) {
   int best_position = -1;
-  double best_cost = DBL_MAX;
+  double best_cost = inf;
 
   for (int i = 0; i < *path_size; i++) {
     int j = (i + 1) % *path_size;
@@ -109,9 +113,12 @@ void insert_nodes(int new_path[maxN], int *path_size, int node) {
 void opt_3_2_cal_length(struct city *cities, int *pre_path, int n,
                         int *selected_nodes, double *path_length,
                         int whether_geograph) {
-  int A = selected_nodes[0], B = pre_path[(selected_nodes[0] + 1) % n];
-  int C = selected_nodes[1], D = pre_path[(selected_nodes[1] + 1) % n];
-  int E = selected_nodes[2], F = pre_path[(selected_nodes[2] + 1) % n];
+  int A = pre_path[selected_nodes[0]],
+      B = pre_path[(selected_nodes[0] + 1) % n];
+  int C = pre_path[selected_nodes[1]],
+      D = pre_path[(selected_nodes[1] + 1) % n];
+  int E = pre_path[selected_nodes[2]],
+      F = pre_path[(selected_nodes[2] + 1) % n];
   // initial state of node are circle: state 3 in paper
   if (whether_geograph == 0) { // data is given as euclidean data
     path_length[0] = euclid_distance(cities, A, E) +
@@ -178,9 +185,9 @@ void reverse(int *new_path, int n, int start, int end) {
     }
   }
 }
-void opt3_2_once(struct city *cities, int *new_path, int n,
-                 double *new_path_length, int node1, int node2, int node3,
-                 int whether_geograph) {
+int opt3_2_once(struct city *cities, int *new_path, int n,
+                double *new_path_length, int node1, int node2, int node3,
+                int whether_geograph) {
   double path_length[7];
   int selected_nodes[3] = {node1, node2,
                            node3}; // store selected node numbers used in n-opt
@@ -191,7 +198,15 @@ void opt3_2_once(struct city *cities, int *new_path, int n,
   // -1 means no change
   int i;
   if (whether_geograph == 0) {
-    min_path_length = euclid_distance(cities, node1, )
+    min_path_length =
+        euclid_distance(cities, new_path[node1], new_path[node1 + 1]) +
+        euclid_distance(cities, new_path[node2], new_path[node2 + 1]) +
+        euclid_distance(cities, new_path[node3], new_path[node3 + 1]);
+  } else {
+    min_path_length =
+        geograph_distance(cities, new_path[node1], new_path[node1 + 1]) +
+        geograph_distance(cities, new_path[node2], new_path[node2 + 1]) +
+        geograph_distance(cities, new_path[node3], new_path[node3 + 1]);
   }
 
   opt_3_2_cal_length(cities, new_path, n, selected_nodes, path_length,
@@ -235,6 +250,9 @@ void opt3_2_once(struct city *cities, int *new_path, int n,
       reverse(new_path, n, node1, node3);
       reverse(new_path, n, node2, node3);
     }
+    return 1;
+  } else {
+    return 0;
   }
 }
 int main(void) {
@@ -243,6 +261,8 @@ int main(void) {
   int new_path[maxN];
   int visited[maxN];
   int path_size = 0;
+  int improved = 0; // identify whether toor is improved by n-opt or not;
+  // 0: no improve; 1: improved;
   double new_path_length;
   double best_path_length = inf;
   int best_path[maxN];
@@ -299,15 +319,15 @@ int main(void) {
     }
 
     // 巡回路の総距離の計算
-    new_path_length = distance(new_path, path_size);
+    new_path_length = distance(cities, new_path, N, path_size);
 
     // 3+2-optによる改善
     for (i = 0; i < 1000; i++) { // 1000回繰り返して改善（適宜調整可能）
       int node1 = createrand(N);
       int node2 = createrand(N);
       int node3 = createrand(N);
-      opt3_2_once(cities, new_path, path_size, &new_path_length, node1, node2,
-                  node3, whether_geograph);
+      improved = opt3_2_once(cities, new_path, path_size, &new_path_length,
+                             node1, node2, node3, whether_geograph);
     }
 
     end_t = clock();

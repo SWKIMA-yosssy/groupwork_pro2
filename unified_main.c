@@ -9,7 +9,6 @@ double dist[maxN][maxN]; // 重み行列
                          // visited[maxN]
 
 int createrand(int n) { // n is number of nodes
-  srand(time(NULL));
   return rand() % n;
 }
 /*ユークリッド*/
@@ -92,7 +91,7 @@ int find_farthest_node(int N, int visited[maxN]) {
 // 点をツアーに挿入する関数
 void insert_nodes(int new_path[maxN], int *path_size, int node) {
   int best_position = -1;
-  double best_cost = inf;
+  double best_cost;
 
   for (int i = 0; i < *path_size; i++) {
     int j = (i + 1) % *path_size;
@@ -275,6 +274,8 @@ int main(void) {
   FILE *fp;
   int buf;
 
+  srand(time(NULL)); // initialize rand
+
   printf("input filename: ");
   scanf("%s", fname);
   fp = fopen(fname, "r");
@@ -296,7 +297,11 @@ int main(void) {
   // 距離行列の計算
   for (i = 0; i < N; i++) {
     for (j = 0; j < N; j++) {
-      dist[i][j] = euclid_distance(cities, i, j);
+      if (whether_geograph == 0) {
+        dist[i][j] = euclid_distance(cities, i, j);
+      } else {
+        dist[i][j] = geograph_distance(cities, i, j);
+      }
     }
   }
 

@@ -1,16 +1,20 @@
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #define maxN 500
 
 /*ユークリッド*/
 struct city {
-  int x;
-  int y;
-}
+  double x;
+  double y;
+};
 
-city path[maxN];
+struct city cities[maxN];
 
-double euclid_distance(path[i], path[i + 1]) {
-  double dx = path[i].x - path[i + 1].x;
-  double dy = path[i].y - path[i + 1].y;
+double euclid_distance(struct city *cities, int a, int b) {
+  double dx = cities[a].x - cities[b].x;
+  double dy = cities[a].y - cities[b].y;
   return sqrt(dx * dx + dy * dy);
 }
 
@@ -53,8 +57,8 @@ double distance(
   return total_distance;
 }
 /*mainで必要なもの*/
-// dist[MaxN][MaxN]重み行列
-// visited[MaxN]
+double dist[maxN][maxN]; // 重み行列
+                         // visited[maxN]
 
 /*distとvisitedの初期化*/
 // for(int i = 0;i < N ;i++){for(int j;j<N;j++){dist[i][j] == -1}}
@@ -66,7 +70,7 @@ double distance(
 // visited[farthest]=1;}
 
 // 最も遠い点を見つける関数
-int find_farthest_node(double dist[MAXN][MAXN], int N, int visited[MAXN]) {
+int find_farthest_node(int N, int visited[maxN]) {
   int farthest = -1;
   double max_dist = -1;
   for (int i = 0; i < N; i++) {
@@ -83,8 +87,7 @@ int find_farthest_node(double dist[MAXN][MAXN], int N, int visited[MAXN]) {
 }
 
 // 点をツアーに挿入する関数
-void insert_nodes(int new_path[MAXN], int *path_size, double dist[MAXN][MAXN],
-                  int node) {
+void insert_nodes(int new_path[maxN], int *path_size, int node) {
   int best_position = -1;
   double best_cost = DBL_MAX;
 
@@ -218,11 +221,12 @@ void opt3_2_once(int *new_path, int n, double *new_path_length, int node1,
 }
 int main(void) {
   int N, i, j;
-  int new_path[MAXN];
+  int new_path[maxN];
+  int visited[maxN];
   int path_size = 0;
   double new_path_length;
   double best_path_length = INF;
-  int best_path[MAXN];
+  int best_path[maxN];
   double time_limit = 60.0; // 計算時間制限（秒）
   clock_t start_t, end_t;
   double utime;
@@ -266,7 +270,7 @@ int main(void) {
     path_size = 1;
 
     while (path_size < N) {
-      int farthest = find_farthest_node(dist, N, visited);
+      int farthest = find_farthest_node(N, visited);
       insert_nodes(new_path, &path_size, dist, farthest);
       visited[farthest] = 1;
     }

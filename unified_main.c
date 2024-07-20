@@ -277,7 +277,8 @@ int main(void) {
   char fname[128];
   FILE *fp;
   int buf;
-  int count = 0; // ###FOR DEBUG
+  int count = 0;         // ###FOR DEBUG
+  int overlap_count = 0; // ### FOR DEBUG
 
   srand(time(NULL)); // initialize rand
 
@@ -341,6 +342,16 @@ int main(void) {
     printf("\nTotal Distance: %f\n", new_path_length);
     printf("Calculation Time: %f seconds\n", utime);
 
+    overlap_count = 0;            // ### FOR DEBUG
+    for (i = 0; i < N - 1; i++) { // ###FOR DEBUG
+      if (new_path[i] == new_path[i + 1]) {
+        overlap_count++;
+        printf("Overlapping tour occur in Farthest insertion in new_path[%d]: "
+               "attempts No.%d\n",
+               i, count);
+      }
+    }
+
     // 3+2-optによる改善
     for (i = 0; i < N * log(N); i++) { // 1000回繰り返して改善（適宜調整可能）
       int node1 = createrand(N);
@@ -357,6 +368,16 @@ int main(void) {
         }
       }
     }*/
+    for (i = 0; i < N - 1; i++) { // ###FOR DEBUG
+      if (new_path[i] == new_path[i + 1]) {
+        if (overlap_count == 0) {
+          printf("###CAUTION: overlap occur in ONLY OPT\n");
+        }
+        printf("Overlapping tour occur in 3+2opt in new_path[%d]: "
+               "attempts No.%d\n",
+               i, count);
+      }
+    }
 
     count++;
     end_t = clock();
@@ -373,11 +394,9 @@ int main(void) {
     }
 
     // ###FOR DEBUG
-    /*
-    count++;
-    if (count > 0) {
+    if (count > 3) {
       break;
-    }*/
+    }
   }
 
   // 結果の出力

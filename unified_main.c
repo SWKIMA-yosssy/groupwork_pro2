@@ -260,7 +260,7 @@ int opt3_2_once(struct city *cities, int *new_path, int n,
   }
 }
 int main(void) {
-  int N, i, j;
+  int N, i, j, k;
   struct city cities[maxN]; // city's data structure :array
   int new_path[maxN];
   int visited[maxN];
@@ -277,6 +277,7 @@ int main(void) {
   char fname[128];
   FILE *fp;
   int buf;
+  int count = 0; // ###FOR DEBUG
 
   srand(time(NULL)); // initialize rand
 
@@ -309,16 +310,15 @@ int main(void) {
     }
   }
 
-  // 初期化
-  for (i = 0; i < N; i++) {
-    visited[i] = -1;
-  }
-
   start_t = clock();
 
   while (1) {
+    // 初期化
+    for (i = 0; i < N; i++) {
+      visited[i] = -1;
+    }
     // 初期解の生成
-    new_path[0] = 0; // 任意の初期点（ここでは0を選択）
+    new_path[0] = createrand(N); // 任意の初期点（ここでは0を選択）
     visited[0] = 1;
     path_size = 1;
 
@@ -331,17 +331,39 @@ int main(void) {
     // 巡回路の総距離の計算
     new_path_length = distance(cities, new_path, N, path_size);
 
+    // output the outcome of farthest insertion: for debug
+    end_t = clock();
+    utime = (double)(end_t - start_t) / CLOCKS_PER_SEC;
+    printf("Path created from Farthest insertion:\n");
+    for (i = 0; i < path_size; i++) {
+      printf("%d ", new_path[i]);
+    }
+    printf("\nTotal Distance: %f\n", new_path_length);
+    printf("Calculation Time: %f seconds\n", utime);
+
     // 3+2-optによる改善
-    for (i = 0; i < 1000; i++) { // 1000回繰り返して改善（適宜調整可能）
+    for (i = 0; i < N * log(N); i++) { // 1000回繰り返して改善（適宜調整可能）
       int node1 = createrand(N);
       int node2 = createrand(N);
       int node3 = createrand(N);
       improved = opt3_2_once(cities, new_path, path_size, &new_path_length,
                              node1, node2, node3, whether_geograph);
     }
+    /* //this for roop search whole combinatio at once but it work less than
+    just roop 1000times for (int i = 0; i < N - 2; i++) { for (int j = i + 1; j
+    < N - 1; j++) { for (int k = j + 1; k < N; k++) { improved =
+    opt3_2_once(cities, new_path, path_size, &new_path_length, i, j, k,
+    whether_geograph);
+        }
+      }
+    }*/
 
+    count++;
     end_t = clock();
     utime = (double)(end_t - start_t) / CLOCKS_PER_SEC;
+    if (utime > time_limit) {
+      break;
+    }
 
     if (new_path_length < best_path_length) {
       best_path_length = new_path_length;
@@ -350,9 +372,12 @@ int main(void) {
       }
     }
 
-    if (utime > time_limit) {
+    // ###FOR DEBUG
+    /*
+    count++;
+    if (count > 0) {
       break;
-    }
+    }*/
   }
 
   // 結果の出力
@@ -360,8 +385,11 @@ int main(void) {
   for (i = 0; i < path_size; i++) {
     printf("%d ", best_path[i]);
   }
+  // print head twice to show its tour
+  printf("%d ", best_path[0]);
   printf("\nTotal Distance: %f\n", best_path_length);
   printf("Calculation Time: %f seconds\n", utime);
+  printf("Total number of attempts: %d\n", count);
 
   return 0;
 }

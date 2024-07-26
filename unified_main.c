@@ -132,8 +132,12 @@ void opt_3_2_cal_length(struct city *cities, int *pre_path, int n,
 }
 
 void reverse(int *new_path, int n, int start, int end) {
+  // start is starting point of one edge, end is ending point of another edge
   int temp;
-  while (start < end) {
+  start++;
+  int endpoint = end;
+  end--;
+  while (start != endpoint) {
     temp = new_path[start];
     new_path[start] = new_path[end];
     new_path[end] = temp;
@@ -178,32 +182,24 @@ int opt3_2_once(struct city *cities, int *new_path, int n,
   if (min_path_num != -1) {
     *new_path_length = min_path_length;
     if (min_path_num == 0) {
-      reverse(new_path, n, node1, node3);
-      reverse(new_path, n, node2, node3);
+      reverse(new_path, n, node1, node2 + 1);
+      reverse(new_path, n, node1, node3 + 1);
     } else if (min_path_num == 1) {
-      reverse(new_path, n, node1, node2);
-      reverse(new_path, n, node2, node3);
+      reverse(new_path, n, node2, node3 + 1);
+      reverse(new_path, n, node1, node3 + 1);
     } else if (min_path_num == 2) {
-      reverse(new_path, n, node1, node2);
-      reverse(new_path, n, node1, node3);
+      reverse(new_path, n, node1, node2 + 1);
+      reverse(new_path, n, node2, node3 + 1);
     } else if (min_path_num == 3) {
-      reverse(new_path, n, node1, node2);
+      reverse(new_path, n, node1, node2 + 1);
     } else if (min_path_num == 4) {
-      reverse(new_path, n, node2, node3);
+      reverse(new_path, n, node2, node3 + 1);
     } else if (min_path_num == 5) {
-      reverse(new_path, n, node1, node3);
+      reverse(new_path, n, node1, node2 + 1);
+      reverse(new_path, n, node2, node3 + 1);
+      reverse(new_path, n, node1, node3 + 1);
     } else if (min_path_num == 6) {
-      reverse(new_path, n, node1, node3);
-      reverse(new_path, n, node2, node3);
-    } else if (min_path_num == 3) {
-      reverse(new_path, n, node1, node2);
-    } else if (min_path_num == 4) {
-      reverse(new_path, n, node2, node3);
-    } else if (min_path_num == 5) {
-      reverse(new_path, n, node1, node3);
-    } else if (min_path_num == 6) {
-      reverse(new_path, n, node1, node3);
-      reverse(new_path, n, node2, node3);
+      reverse(new_path, n, node1, node3 + 1);
     }
     *new_path_length = distance(cities, new_path, n, whether_geograph);
     return 1;

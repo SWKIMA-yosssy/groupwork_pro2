@@ -114,8 +114,7 @@ void insert_nodes(int new_path[maxN], int *path_size, int node) {
   (*path_size)++;
 }
 void opt_3_2_cal_length(struct city *cities, int *pre_path, int n,
-                        int *selected_nodes, double *path_length,
-                        int whether_geograph) {
+                        int *selected_nodes, double *path_length) {
   int A = pre_path[selected_nodes[0]],
       B = pre_path[(selected_nodes[0] + 1) % n];
   int C = pre_path[selected_nodes[1]],
@@ -123,51 +122,13 @@ void opt_3_2_cal_length(struct city *cities, int *pre_path, int n,
   int E = pre_path[selected_nodes[2]],
       F = pre_path[(selected_nodes[2] + 1) % n];
   // initial state of node are circle: state 3 in paper
-  if (whether_geograph == 0) { // data is given as euclidean data
-    path_length[0] = euclid_distance(cities, A, E) +
-                     euclid_distance(cities, B, D) +
-                     euclid_distance(cities, C, F);
-    path_length[1] = euclid_distance(cities, A, D) +
-                     euclid_distance(cities, E, C) +
-                     euclid_distance(cities, B, F);
-    path_length[2] = euclid_distance(cities, A, C) +
-                     euclid_distance(cities, B, E) +
-                     euclid_distance(cities, D, F);
-    path_length[3] = euclid_distance(cities, A, C) +
-                     euclid_distance(cities, B, D) +
-                     euclid_distance(cities, E, F);
-    path_length[4] = euclid_distance(cities, A, B) +
-                     euclid_distance(cities, C, E) +
-                     euclid_distance(cities, D, F);
-    path_length[5] = euclid_distance(cities, A, D) +
-                     euclid_distance(cities, E, B) +
-                     euclid_distance(cities, C, F);
-    path_length[6] = euclid_distance(cities, A, E) +
-                     euclid_distance(cities, D, C) +
-                     euclid_distance(cities, B, F);
-  } else {
-    path_length[0] = geograph_distance(cities, A, E) +
-                     geograph_distance(cities, B, D) +
-                     geograph_distance(cities, C, F);
-    path_length[1] = geograph_distance(cities, A, D) +
-                     geograph_distance(cities, E, C) +
-                     geograph_distance(cities, B, F);
-    path_length[2] = geograph_distance(cities, A, C) +
-                     geograph_distance(cities, B, E) +
-                     geograph_distance(cities, D, F);
-    path_length[3] = geograph_distance(cities, A, C) +
-                     geograph_distance(cities, B, D) +
-                     geograph_distance(cities, E, F);
-    path_length[4] = geograph_distance(cities, A, B) +
-                     geograph_distance(cities, C, E) +
-                     geograph_distance(cities, D, F);
-    path_length[5] = geograph_distance(cities, A, D) +
-                     geograph_distance(cities, E, B) +
-                     geograph_distance(cities, C, F);
-    path_length[6] = geograph_distance(cities, A, E) +
-                     geograph_distance(cities, D, C) +
-                     geograph_distance(cities, B, F);
-  }
+  path_length[0] = dist[A][E] + dist[B][D] + dist[C][F];
+  path_length[1] = dist[A][D] + dist[E][C] + dist[B][F];
+  path_length[2] = dist[A][C] + dist[B][E] + dist[D][F];
+  path_length[3] = dist[A][C] + dist[B][D] + dist[E][F];
+  path_length[4] = dist[A][B] + dist[C][E] + dist[D][F];
+  path_length[5] = dist[A][D] + dist[E][B] + dist[C][F];
+  path_length[6] = dist[A][E] + dist[D][C] + dist[B][F];
 }
 
 void reverse(int *new_path, int n, int start, int end) {
@@ -200,20 +161,11 @@ int opt3_2_once(struct city *cities, int *new_path, int n,
   int min_path_num = -1; // number of index which gives minimum length
   // -1 means no change
   int i;
-  if (whether_geograph == 0) {
-    min_path_length =
-        euclid_distance(cities, new_path[node1], new_path[node1 + 1]) +
-        euclid_distance(cities, new_path[node2], new_path[node2 + 1]) +
-        euclid_distance(cities, new_path[node3], new_path[node3 + 1]);
-  } else {
-    min_path_length =
-        geograph_distance(cities, new_path[node1], new_path[node1 + 1]) +
-        geograph_distance(cities, new_path[node2], new_path[node2 + 1]) +
-        geograph_distance(cities, new_path[node3], new_path[node3 + 1]);
-  }
+  min_path_length = dist[new_path[node1]][new_path[node1 + 1]] +
+                    dist[new_path[node2]][new_path[node2 + 1]] +
+                    dist[new_path[node3]][new_path[node3 + 1]];
 
-  opt_3_2_cal_length(cities, new_path, n, selected_nodes, path_length,
-                     whether_geograph);
+  opt_3_2_cal_length(cities, new_path, n, selected_nodes, path_length);
 
   for (i = 0; i < 7; i++) {
     if (min_path_length > path_length[i]) {

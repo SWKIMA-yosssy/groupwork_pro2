@@ -12,6 +12,43 @@ double dist[maxN][maxN]; // 重み行列
 int createrand(int n) { // n is number of nodes
   return rand() % n;
 }
+
+int is_valid(int num, int chosen_numbers[], int count) {
+  // 隣接数とのチェック
+  for (int i = 0; i < count; i++) {
+    if (abs(chosen_numbers[i] - num) == 1) {
+      return 0; // 隣接している場合は無効
+    }
+  }
+  return 1; // 有効
+}
+
+void choose_unique_random_numbers(int N, int chosen_numbers[3]) {
+  int count = 0;
+
+  while (count < 3) {
+    int rand_number = createrand(N);
+
+    // 有効性を確認
+    if (is_valid(rand_number, chosen_numbers, count)) {
+      chosen_numbers[count] = rand_number;
+      count++;
+    }
+  }
+}
+// Insertion-Sort :used before 3-opt to create random nodes
+void insertion_sort(int *A, int n) {
+  int i, j, a;
+  for (i = 1; i < n - 1; i++) {
+    a = A[i];
+    j = i - 1;
+    while (j >= 0 || A[j] > a) {
+      A[j + 1] = A[j];
+      j = j - 1;
+    }
+    A[j + 1] = a;
+  }
+}
 /*ユークリッド*/
 struct city {
   double x;
@@ -136,26 +173,12 @@ void opt_3_2_cal_length(struct city *cities, int *pre_path, int n,
 void reverse(int *new_path, int n, int start, int end) {
   // start is starting point of one edge, end is ending point of another edge
   int temp;
-  start++;
-  if (start == 0) {
-    start = 0;
-  }
-  int endpoint = end;
-  end--;
-  while (start != endpoint) {
+  while (start < end) {
     temp = new_path[start];
     new_path[start] = new_path[end];
     new_path[end] = temp;
-    if (start == n - 1) {
-      start = 0;
-    } else {
-      start++;
-    }
-    if (end == 0) {
-      end = n - 1;
-    } else {
-      end--;
-    }
+    start++;
+    end--;
   }
 }
 int opt3_2_once(struct city *cities, int *new_path, int n,
@@ -187,22 +210,22 @@ int opt3_2_once(struct city *cities, int *new_path, int n,
   if (min_path_num != -1) {
     *new_path_length = min_path_length;
     if (min_path_num == 0) {
-      reverse(new_path, n, node1, node2 + 1);
-      reverse(new_path, n, node1, node3 + 1);
+      reverse(new_path, n, node1 + 1, node2);
+      reverse(new_path, n, node1 + 1, node3);
     } else if (min_path_num == 1) {
-      reverse(new_path, n, node2, node3 + 1);
-      reverse(new_path, n, node1, node3 + 1);
+      reverse(new_path, n, node2 + 1, node3);
+      reverse(new_path, n, node1 + 1, node3);
     } else if (min_path_num == 2) {
-      reverse(new_path, n, node1, node2 + 1);
-      reverse(new_path, n, node2, node3 + 1);
+      reverse(new_path, n, node1 + 1, node2);
+      reverse(new_path, n, node2 + 1, node3);
     } else if (min_path_num == 3) {
-      reverse(new_path, n, node1, node2 + 1);
+      reverse(new_path, n, node1 + 1, node2);
     } else if (min_path_num == 4) {
-      reverse(new_path, n, node2, node3 + 1);
+      reverse(new_path, n, node2 + 1, node3);
     } else if (min_path_num == 5) {
-      reverse(new_path, n, node1, node2 + 1);
-      reverse(new_path, n, node2, node3 + 1);
-      reverse(new_path, n, node1, node3 + 1);
+      reverse(new_path, n, node1 + 1, node2);
+      reverse(new_path, n, node2 + 1, node3);
+      reverse(new_path, n, node1 + 1, node3);
     } else if (min_path_num == 6) {
       reverse(new_path, n, node1, node3 + 1);
     }
@@ -232,6 +255,7 @@ int main(void) {
   int buf;
   int count = 0;         // ###FOR DEBUG
   int overlap_count = 0; // ### FOR DEBUG
+  int random_node[3];
 
   srand(time(NULL)); // initialize rand
 
@@ -278,11 +302,6 @@ int main(void) {
     path_size = 1;
 
     while (path_size < N) {
-      printf("Path created from Farthest insertion:\n");
-      for (i = 0; i <= path_size; i++) {
-        printf("%d ", new_path[i]);
-      }
-      printf("\n");
       int farthest = find_farthest_node(N, visited);
       insert_nodes(new_path, &path_size, farthest);
       visited[farthest] = 1;
@@ -293,14 +312,16 @@ int main(void) {
     new_path_length = distance(cities, new_path, N, path_size);
 
     // output the outcome of farthest insertion: for debug
+    /*
     end_t = clock();
     utime = (double)(end_t - start_t) / CLOCKS_PER_SEC;
     printf("Path created from Farthest insertion:\n");
-    for (i = 0; i <= path_size; i++) {
+    for (i = 0; i <= N; i++) {
       printf("%d ", new_path[i]);
     }
     printf("\nTotal Distance: %f\n", new_path_length);
     printf("Calculation Time: %f seconds\n", utime);
+    */
 
     overlap_count = 0;            // ### FOR DEBUG
     for (i = 0; i < N - 1; i++) { // ###FOR DEBUG
@@ -313,19 +334,22 @@ int main(void) {
     }
 
     // 3+2-optによる改善
-    /*
     for (i = 0; i < N * log(N); i++) { // 1000回繰り返して改善（適宜調整可能）
-      int node1 = createrand(N);
-      int node2 = createrand(N);
-      int node3 = createrand(N);
+      choose_unique_random_numbers(N, random_node); // 連続しない3つの乱数を生成
+      insertion_sort(random_node,
+                     3); // random_node[0]<[1]<[2]となるようにsort
       improved = opt3_2_once(cities, new_path, path_size, &new_path_length,
-                             node1, node2, node3, whether_geograph);
-    }*/
-    /* //this for roop search whole combinatio at once but it work less than
-    just roop 1000times for (int i = 0; i < N - 2; i++) { for (int j = i + 1; j
-    < N - 1; j++) { for (int k = j + 1; k < N; k++) { improved =
-    opt3_2_once(cities, new_path, path_size, &new_path_length, i, j, k,
-    whether_geograph);
+                             random_node[0], random_node[1], random_node[2],
+                             whether_geograph);
+    }
+    // this for roop search whole combinatio at once but it work less than
+    // just roop 1000times
+    /*
+    for (int i = 0; i < N - 2; i++) {
+      for (int j = i + 1; j < N - 1; j++) {
+        for (int k = j + 1; k < N; k++) {
+          improved = opt3_2_once(cities, new_path, path_size, &new_path_length,
+                                 i, j, k, whether_geograph);
         }
       }
     }*/
@@ -355,9 +379,10 @@ int main(void) {
     }
 
     // ###FOR DEBUG
+    /*
     if (count > 0) {
       break;
-    }
+    }*/
   }
 
   // 結果の出力

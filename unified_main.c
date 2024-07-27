@@ -1,3 +1,4 @@
+#include <float.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -77,7 +78,7 @@ int find_farthest_node(int N, int visited[maxN]) {
   double max_dist = -1;
   for (int i = 0; i < N; i++) {
     if (visited[i] == -1) {
-      double sum_dist = 0;
+      double sum_dist = DBL_MAX;
       for (int j = 0; j < N; j++) {
         if (visited[j] != -1) {
           sum_dist += dist[i][j];
@@ -135,6 +136,9 @@ void reverse(int *new_path, int n, int start, int end) {
   // start is starting point of one edge, end is ending point of another edge
   int temp;
   start++;
+  if (start == 0) {
+    start = 0;
+  }
   int endpoint = end;
   end--;
   while (start != endpoint) {

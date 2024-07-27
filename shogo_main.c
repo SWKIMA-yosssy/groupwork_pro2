@@ -97,23 +97,22 @@ int find_farthest_node(int N, int visited[maxN]) {
 
 // 点をツアーに挿入する関数
 void insert_nodes(int new_path[maxN], int *path_size, int node) {
-  int best_position = 0;
+  int best_position = -1;
   double best_cost = DBL_MAX;
 
   for (int i = 0; i < *path_size; i++) {
-    int j = (i + 1) % *path_size;
-    double cost = dist[new_path[i]][node] + dist[node][new_path[j]] -
-                  dist[new_path[i]][new_path[j]];
+    double cost = dist[new_path[i]][node] + dist[node][new_path[i + 1]] -
+                  dist[new_path[i]][new_path[i + 1]];
     if (cost < best_cost) {
       best_cost = cost;
-      best_position = j;
+      best_position = i;
     }
   }
 
   for (int i = *path_size; i > best_position; i--) {
-    new_path[i] = new_path[i - 1];
+    new_path[i + 1] = new_path[i];
   }
-  new_path[best_position] = node;
+  new_path[best_position + 1] = node;
   (*path_size)++;
 }
 void opt_3_2_cal_length(struct city *cities, int *pre_path, int n,
@@ -273,14 +272,21 @@ int main(void) {
       visited[i] = -1;
     }
     // 初期解の生成
+
     new_path[0] = createrand(N); // 任意の初期点（ここでは0を選択）
-    visited[0] = 1;
+    visited[new_path[0]] = 1;
     path_size = 1;
 
     while (path_size < N) {
+      printf("Path created from Farthest insertion:\n");
+      for (i = 0; i <= path_size; i++) {
+        printf("%d ", new_path[i]);
+      }
+      printf("\n");
       int farthest = find_farthest_node(N, visited);
       insert_nodes(new_path, &path_size, farthest);
       visited[farthest] = 1;
+      new_path[path_size] = new_path[0]; // close tour
     }
 
     // 巡回路の総距離の計算
@@ -290,7 +296,7 @@ int main(void) {
     end_t = clock();
     utime = (double)(end_t - start_t) / CLOCKS_PER_SEC;
     printf("Path created from Farthest insertion:\n");
-    for (i = 0; i < path_size; i++) {
+    for (i = 0; i <= path_size; i++) {
       printf("%d ", new_path[i]);
     }
     printf("\nTotal Distance: %f\n", new_path_length);
@@ -307,13 +313,14 @@ int main(void) {
     }
 
     // 3+2-optによる改善
+    /*
     for (i = 0; i < N * log(N); i++) { // 1000回繰り返して改善（適宜調整可能）
       int node1 = createrand(N);
       int node2 = createrand(N);
       int node3 = createrand(N);
       improved = opt3_2_once(cities, new_path, path_size, &new_path_length,
                              node1, node2, node3, whether_geograph);
-    }
+    }*/
     /* //this for roop search whole combinatio at once but it work less than
     just roop 1000times for (int i = 0; i < N - 2; i++) { for (int j = i + 1; j
     < N - 1; j++) { for (int k = j + 1; k < N; k++) { improved =
@@ -348,7 +355,7 @@ int main(void) {
     }
 
     // ###FOR DEBUG
-    if (count > 3) {
+    if (count > 0) {
       break;
     }
   }

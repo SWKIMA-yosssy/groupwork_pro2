@@ -61,9 +61,8 @@ struct city {
 double euclid_distance(struct city *cities, int a, int b) {
   double dx = cities[a].x - cities[b].x;
   double dy = cities[a].y - cities[b].y;
-  return sqrt(dx * dx + dy * dy);
+  return (int)(sqrt(dx * dx + dy * dy) + 0.5);
 }
-
 /*地理的距離*/
 
 // 度をラジアンに変換する関数
@@ -211,27 +210,24 @@ int opt3_2_once(struct city *cities, int *new_path, int n,
 
   // reflect outcome
   if (min_path_num != -1) {
-    *new_path_length = min_path_length;
     if (min_path_num == 0) {
       reverse(new_path, n, node1 + 1, node2);
-      reverse(new_path, n, node2 + 1, node3);
+      reverse(new_path, n, node1 + 1, node3);
     } else if (min_path_num == 1) {
-      reverse(new_path, n, node1 + 1, node2);
+      reverse(new_path, n, node2 + 1, node3);
       reverse(new_path, n, node1 + 1, node3);
     } else if (min_path_num == 2) {
       reverse(new_path, n, node1 + 1, node2);
-      reverse(new_path, n, node3 + 1, n - 1);
+      reverse(new_path, n, node2 + 1, node3);
       reverse(new_path, n, 0, node3);
     } else if (min_path_num == 3) {
       reverse(new_path, n, node1 + 1, node2);
-      reverse(new_path, n, node2 + 1, node3);
-      reverse(new_path, n, node1 + 1, node3);
     } else if (min_path_num == 4) {
-      reverse(new_path, n, node1 + 1, node3);
-      reverse(new_path, n, node2 + 1, n - 1);
+      reverse(new_path, n, node2 + 1, node3);
     } else if (min_path_num == 5) {
       reverse(new_path, n, node1 + 1, node2);
-      reverse(new_path, n, node3 + 1, n - 1);
+      reverse(new_path, n, node2 + 1, node2);
+      reverse(new_path, n, node1 + 1, node3);
     } else if (min_path_num == 6) {
       reverse(new_path, n, node1 + 1, node3);
     }
@@ -241,6 +237,30 @@ int opt3_2_once(struct city *cities, int *new_path, int n,
     return 0;
   }
 }
+
+void two_opt(struct city *cities, int *new_path, int n, double *new_path_length,
+             int whether_geograph) {
+  int i, j;
+  int improved = 1;
+  int new_tour[n + 1];
+
+  while (improved != 0) {
+    improved = 0;
+    for (i = 1; i < n - 2; i++) {
+      for (j = i + 1; j < n - 1; j++) {
+        if (dist[new_path[i]][new_path[i + 1]] +
+                dist[new_path[j]][new_path[j + 1]] >
+            dist[new_path[i]][new_path[j]] +
+                dist[new_path[i + 1]][new_path[j + 1]]) {
+          reverse(new_path, n, i + 1, j);
+          *new_path_length = distance(cities, new_path, n, whether_geograph);
+          improved++;
+        }
+      }
+    }
+  }
+}
+
 int main(void) {
   int N, i, j, k;
   struct city cities[maxN]; // city's data structure :array
@@ -328,7 +348,6 @@ int main(void) {
     printf("\nTotal Distance: %f\n", new_path_length);
     printf("Calculation Time: %f seconds\n", utime);
     */
-
     overlap_count = 0;            // ### FOR DEBUG
     for (i = 0; i < N - 1; i++) { // ###FOR DEBUG
       if (new_path[i] == new_path[i + 1]) {
@@ -339,8 +358,10 @@ int main(void) {
       }
     }
 
+    // 2-optによる改善
+    two_opt(cities, new_path, N, &new_path_length, whether_geograph);
     // 3+2-optによる改善
-    for (i = 0; i < N * log(N); i++) { // 1000回繰り返して改善（適宜調整可能）
+    for (i = 0; i < N * N; i++) { // 1000回繰り返して改善（適宜調整可能）
       choose_unique_random_numbers(N, random_node); // 連続しない3つの乱数を生成
       insertion_sort(random_node,
                      3); // random_node[0]<[1]<[2]となるようにsort
@@ -394,13 +415,12 @@ int main(void) {
   // 結果の出力
   printf("Best Path:\n");
   for (i = 0; i <= N; i++) {
-    printf("%d ", best_path[i]);
+    printf("%d ",
+           best_path[i] + 1); // +1 because data is starting from node number 1
   }
   // print head twice to show its tour
   printf("\nTotal Distance: %f\n", best_path_length);
   printf("Calculation Time: %f seconds\n", utime);
   printf("Total number of attempts: %d\n", count);
-  best_path_length = distance(cities, new_path, N, whether_geograph);
-  printf("recalculate Total Distance: %f\n", best_path_length);
   return 0;
 }

@@ -22,10 +22,12 @@ int is_valid(int num, int chosen_numbers[], int count) {
   }
   return 1; // 有効
 }
-
 void choose_unique_random_numbers(int N, int chosen_numbers[3]) {
-  int count = 0;
+  for (int i = 0; i < 3; i++) {
+    chosen_numbers[i] = -1; // 配列を初期化
+  }
 
+  int count = 0;
   while (count < 3) {
     int rand_number = createrand(N);
 
@@ -36,13 +38,14 @@ void choose_unique_random_numbers(int N, int chosen_numbers[3]) {
     }
   }
 }
+
 // Insertion-Sort :used before 3-opt to create random nodes
 void insertion_sort(int *A, int n) {
   int i, j, a;
-  for (i = 1; i < n - 1; i++) {
+  for (i = 1; i < n; i++) {
     a = A[i];
     j = i - 1;
-    while (j >= 0 || A[j] > a) {
+    while (j >= 0 && A[j] > a) {
       A[j + 1] = A[j];
       j = j - 1;
     }
@@ -211,23 +214,26 @@ int opt3_2_once(struct city *cities, int *new_path, int n,
     *new_path_length = min_path_length;
     if (min_path_num == 0) {
       reverse(new_path, n, node1 + 1, node2);
-      reverse(new_path, n, node1 + 1, node3);
-    } else if (min_path_num == 1) {
       reverse(new_path, n, node2 + 1, node3);
+    } else if (min_path_num == 1) {
+      reverse(new_path, n, node1 + 1, node2);
       reverse(new_path, n, node1 + 1, node3);
     } else if (min_path_num == 2) {
       reverse(new_path, n, node1 + 1, node2);
-      reverse(new_path, n, node2 + 1, node3);
+      reverse(new_path, n, node3 + 1, n - 1);
+      reverse(new_path, n, 0, node3);
     } else if (min_path_num == 3) {
-      reverse(new_path, n, node1 + 1, node2);
-    } else if (min_path_num == 4) {
-      reverse(new_path, n, node2 + 1, node3);
-    } else if (min_path_num == 5) {
       reverse(new_path, n, node1 + 1, node2);
       reverse(new_path, n, node2 + 1, node3);
       reverse(new_path, n, node1 + 1, node3);
+    } else if (min_path_num == 4) {
+      reverse(new_path, n, node1 + 1, node3);
+      reverse(new_path, n, node2 + 1, n - 1);
+    } else if (min_path_num == 5) {
+      reverse(new_path, n, node1 + 1, node2);
+      reverse(new_path, n, node3 + 1, n - 1);
     } else if (min_path_num == 6) {
-      reverse(new_path, n, node1, node3 + 1);
+      reverse(new_path, n, node1 + 1, node3);
     }
     *new_path_length = distance(cities, new_path, n, whether_geograph);
     return 1;
@@ -309,7 +315,7 @@ int main(void) {
     }
 
     // 巡回路の総距離の計算
-    new_path_length = distance(cities, new_path, N, path_size);
+    new_path_length = distance(cities, new_path, N, whether_geograph);
 
     // output the outcome of farthest insertion: for debug
     /*

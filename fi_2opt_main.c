@@ -61,39 +61,37 @@ struct city {
 double euclid_distance(struct city *cities, int a, int b) {
   double dx = cities[a].x - cities[b].x;
   double dy = cities[a].y - cities[b].y;
-  return (int)(sqrt(dx * dx + dy * dy));
+  return (int)(sqrt(dx * dx + dy * dy) + 0.5);
 }
-
-
 
 /*地理的距離を求める関数*/
 double geograph_distance(struct city *cities, int a, int b) {
-   double x1 = cities[a].x;
-    double y1 = cities[a].y;
-    int deg = (int)x1;
-    double min = x1 - deg;
-    double lat1 = PI * (deg + 5.0 * min / 3.0) / 180.0;
+  double x1 = cities[a].x;
+  double y1 = cities[a].y;
+  int deg = (int)x1;
+  double min = x1 - deg;
+  double lat1 = M_PI * (deg + 5.0 * min / 3.0) / 180.0;
 
-    deg = (int)y1;
-    min = y1 - deg;
-    double long1 = PI * (deg + 5.0 * min / 3.0) / 180.0;
+  deg = (int)y1;
+  min = y1 - deg;
+  double long1 = M_PI * (deg + 5.0 * min / 3.0) / 180.0;
 
-    double x2 = cities[b].x;
-    double y2 = cities[b].y;
-    deg = (int)x2;
-    min = x2 - deg;
-    double lat2 = PI * (deg + 5.0 * min / 3.0) / 180.0;
+  double x2 = cities[b].x;
+  double y2 = cities[b].y;
+  deg = (int)x2;
+  min = x2 - deg;
+  double lat2 = M_PI * (deg + 5.0 * min / 3.0) / 180.0;
 
-    deg = (int)y2;
-    min = y2 - deg;
-    double long2 = PI * (deg + 5.0 * min / 3.0) / 180.0;
+  deg = (int)y2;
+  min = y2 - deg;
+  double long2 = M_PI * (deg + 5.0 * min / 3.0) / 180.0;
 
-    double q1 = cos(long1 - long2);
-    double q2 = cos(lat1 - lat2);
-    double q3 = cos(lat1 + lat2);
+  double q1 = cos(long1 - long2);
+  double q2 = cos(lat1 - lat2);
+  double q3 = cos(lat1 + lat2);
 
-    double C = earthr * acos(0.5 * ((1.0 + q1) * q2 - (1.0 - q1) * q3) + 1.0);
-    return (int)C; 
+  double C = earthr * acos(0.5 * ((1.0 + q1) * q2 - (1.0 - q1) * q3) + 1.0);
+  return (int)C;
 }
 double distance(
     struct city *cities, int *path, int n,
@@ -304,6 +302,7 @@ int main(void) {
     }
 
     two_opt(cities, new_path, N, &new_path_length, whether_geograph);
+
     for (i = 0; i < N - 1; i++) { // ###FOR DEBUG
       if (new_path[i] == new_path[i + 1]) {
         if (overlap_count == 0) {
@@ -345,7 +344,5 @@ int main(void) {
   printf("\nTotal Distance: %f\n", best_path_length);
   printf("Calculation Time: %f seconds\n", utime);
   printf("Total number of attempts: %d\n", count);
-  best_path_length = distance(cities, new_path, N, whether_geograph);
-  printf("recalculate Total Distance: %f\n", best_path_length);
   return 0;
 }

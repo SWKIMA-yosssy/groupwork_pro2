@@ -379,7 +379,7 @@ int main(void) {
 
     if (new_path_length < best_path_length) {
       best_path_length = new_path_length;
-      for (i = 0; i < path_size; i++) {
+      for (i = 0; i <= N; i++) {
         best_path[i] = new_path[i];
       }
     }
@@ -393,14 +393,14 @@ int main(void) {
 
   // 結果の出力
   printf("Best Path:\n");
-  for (i = 0; i < path_size; i++) {
+  for (i = 0; i <= N; i++) {
     printf("%d ", best_path[i]);
   }
   // print head twice to show its tour
-  printf("%d ", best_path[0]);
   printf("\nTotal Distance: %f\n", best_path_length);
   printf("Calculation Time: %f seconds\n", utime);
   printf("Total number of attempts: %d\n", count);
-
+  best_path_length = distance(cities, new_path, N, whether_geograph);
+  printf("recalculate Total Distance: %f\n", best_path_length);
   return 0;
 }

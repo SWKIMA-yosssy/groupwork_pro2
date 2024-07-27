@@ -156,18 +156,39 @@ void insert_nodes(int new_path[maxN], int *path_size, int node) {
   (*path_size)++;
 }
 
-void reverse(int *new_path, int n, int start, int end) {
+void reverse(int *tour, int n, int start, int end) {
   // start is starting point of one edge, end is ending point of another edge
   int temp;
   while (start < end) {
-    temp = new_path[start];
-    new_path[start] = new_path[end];
-    new_path[end] = temp;
+    temp = tour[start];
+    tour[start] = tour[end];
+    tour[end] = temp;
     start++;
     end--;
   }
 }
+void two_opt(struct city *cities, int *new_path, int n, double *new_path_length,
+             int whether_geograph) {
+  int i, j;
+  int improved = 1;
+  int new_tour[n + 1];
 
+  while (improved != 0) {
+    improved = 0;
+    for (i = 1; i < n - 2; i++) {
+      for (j = i + 1; j < n - 1; j++) {
+        if (dist[new_path[i]][new_path[i + 1]] +
+                dist[new_path[j]][new_path[j + 1]] >
+            dist[new_path[i]][new_path[j]] +
+                dist[new_path[i + 1]][new_path[j + 1]]) {
+          reverse(new_path, n, i + 1, j);
+          *new_path_length = distance(cities, new_path, n, whether_geograph);
+          improved++;
+        }
+      }
+    }
+  }
+}
 int main(void) {
   int N, i, j, k;
   struct city cities[maxN]; // city's data structure :array
@@ -266,6 +287,7 @@ int main(void) {
       }
     }
 
+    two_opt(cities, new_path, N, &new_path_length, whether_geograph);
     for (i = 0; i < N - 1; i++) { // ###FOR DEBUG
       if (new_path[i] == new_path[i + 1]) {
         if (overlap_count == 0) {
@@ -292,9 +314,10 @@ int main(void) {
     }
 
     // ###FOR DEBUG
+    /*
     if (count > 0) {
       break;
-    }
+    }*/
   }
 
   // 結果の出力
@@ -303,7 +326,6 @@ int main(void) {
     printf("%d ",
            best_path[i] + 1); // +1 because data is starting from node number 1
   }
-  // print head twice to show its tour
   printf("\nTotal Distance: %f\n", best_path_length);
   printf("Calculation Time: %f seconds\n", utime);
   printf("Total number of attempts: %d\n", count);

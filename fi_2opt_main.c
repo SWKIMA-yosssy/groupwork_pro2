@@ -61,23 +61,39 @@ struct city {
 double euclid_distance(struct city *cities, int a, int b) {
   double dx = cities[a].x - cities[b].x;
   double dy = cities[a].y - cities[b].y;
-  return sqrt(dx * dx + dy * dy);
+  return (int)(sqrt(dx * dx + dy * dy));
 }
 
-/*地理的距離*/
 
-// 度をラジアンに変換する関数
-double deg2rad(double deg) { return deg * (M_PI / 180.0); }
 
 /*地理的距離を求める関数*/
 double geograph_distance(struct city *cities, int a, int b) {
-  double dlat = deg2rad(cities[a].x - cities[b].x);
-  double dlon = deg2rad(cities[a].y - cities[b].y);
-  double A = sin(dlat / 2) * sin(dlat / 2) + cos(deg2rad(cities[b].x)) *
-                                                 cos(deg2rad(cities[a].x)) *
-                                                 sin(dlon / 2) * sin(dlon / 2);
-  double C = 2 * atan2(sqrt(A), sqrt(1 - A));
-  return earthr * C;
+   double x1 = cities[a].x;
+    double y1 = cities[a].y;
+    int deg = (int)x1;
+    double min = x1 - deg;
+    double lat1 = PI * (deg + 5.0 * min / 3.0) / 180.0;
+
+    deg = (int)y1;
+    min = y1 - deg;
+    double long1 = PI * (deg + 5.0 * min / 3.0) / 180.0;
+
+    double x2 = cities[b].x;
+    double y2 = cities[b].y;
+    deg = (int)x2;
+    min = x2 - deg;
+    double lat2 = PI * (deg + 5.0 * min / 3.0) / 180.0;
+
+    deg = (int)y2;
+    min = y2 - deg;
+    double long2 = PI * (deg + 5.0 * min / 3.0) / 180.0;
+
+    double q1 = cos(long1 - long2);
+    double q2 = cos(lat1 - lat2);
+    double q3 = cos(lat1 + lat2);
+
+    double C = earthr * acos(0.5 * ((1.0 + q1) * q2 - (1.0 - q1) * q3) + 1.0);
+    return (int)C; 
 }
 double distance(
     struct city *cities, int *path, int n,

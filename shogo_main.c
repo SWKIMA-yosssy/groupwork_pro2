@@ -6,6 +6,7 @@
 #define maxN 500
 #define inf 1000000
 #define earthr 6378.388  // 地球の半径
+#define MY_PI 3.141592   // PI
 double dist[maxN][maxN]; // 重み行列
                          // visited[maxN]
 
@@ -70,14 +71,34 @@ double deg2rad(double deg) { return deg * (M_PI / 180.0); }
 
 /*地理的距離を求める関数*/
 double geograph_distance(struct city *cities, int a, int b) {
-  double dlat = deg2rad(cities[a].x - cities[b].x);
-  double dlon = deg2rad(cities[a].y - cities[b].y);
-  double A = sin(dlat / 2) * sin(dlat / 2) + cos(deg2rad(cities[b].x)) *
-                                                 cos(deg2rad(cities[a].x)) *
-                                                 sin(dlon / 2) * sin(dlon / 2);
-  double C = 2 * atan2(sqrt(A), sqrt(1 - A));
-  return earthr * C;
+  double x1 = cities[a].x;
+  double y1 = cities[a].y;
+  int deg = (int)(x1 + 0.5);
+  double min = x1 - deg;
+  double lat1 = MY_PI * (deg + 5.0 * min / 3.0) / 180.0;
+
+  deg = (int)(y1 + 0.5);
+  min = y1 - deg;
+  double long1 = MY_PI * (deg + 5.0 * min / 3.0) / 180.0;
+
+  double x2 = cities[b].x;
+  double y2 = cities[b].y;
+  deg = (int)(x2 + 0.5);
+  min = x2 - deg;
+  double lat2 = MY_PI * (deg + 5.0 * min / 3.0) / 180.0;
+
+  deg = (int)(y2 + 0.5);
+  min = y2 - deg;
+  double long2 = M_PI * (deg + 5.0 * min / 3.0) / 180.0;
+
+  double q1 = cos(long1 - long2);
+  double q2 = cos(lat1 - lat2);
+  double q3 = cos(lat1 + lat2);
+
+  double tmp = earthr * acos(0.5 * ((1.0 + q1) * q2 - (1.0 - q1) * q3)) + 1.0;
+  return (int)(tmp + 0.5);
 }
+// ツアーの総距離を求めるプログラム
 double distance(
     struct city *cities, int *path, int n,
     int whether_geograph) { // int *path is array of root, n is number of node

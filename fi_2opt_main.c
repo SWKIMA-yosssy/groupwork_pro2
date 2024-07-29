@@ -6,6 +6,7 @@
 #define maxN 500
 #define inf 1000000
 #define earthr 6378.388  // 地球の半径
+#define MY_PI 3.141592   // PI
 double dist[maxN][maxN]; // 重み行列
                          // visited[maxN]
 
@@ -68,21 +69,21 @@ double euclid_distance(struct city *cities, int a, int b) {
 double geograph_distance(struct city *cities, int a, int b) {
   double x1 = cities[a].x;
   double y1 = cities[a].y;
-  int deg = (int)x1;
+  int deg = (int)(x1 + 0.5);
   double min = x1 - deg;
-  double lat1 = M_PI * (deg + 5.0 * min / 3.0) / 180.0;
+  double lat1 = MY_PI * (deg + 5.0 * min / 3.0) / 180.0;
 
-  deg = (int)y1;
+  deg = (int)(y1 + 0.5);
   min = y1 - deg;
-  double long1 = M_PI * (deg + 5.0 * min / 3.0) / 180.0;
+  double long1 = MY_PI * (deg + 5.0 * min / 3.0) / 180.0;
 
   double x2 = cities[b].x;
   double y2 = cities[b].y;
-  deg = (int)x2;
+  deg = (int)(x2 + 0.5);
   min = x2 - deg;
-  double lat2 = M_PI * (deg + 5.0 * min / 3.0) / 180.0;
+  double lat2 = MY_PI * (deg + 5.0 * min / 3.0) / 180.0;
 
-  deg = (int)y2;
+  deg = (int)(y2 + 0.5);
   min = y2 - deg;
   double long2 = M_PI * (deg + 5.0 * min / 3.0) / 180.0;
 
@@ -90,8 +91,8 @@ double geograph_distance(struct city *cities, int a, int b) {
   double q2 = cos(lat1 - lat2);
   double q3 = cos(lat1 + lat2);
 
-  double C = earthr * acos(0.5 * ((1.0 + q1) * q2 - (1.0 - q1) * q3) + 1.0);
-  return (int)C;
+  double tmp = earthr * acos(0.5 * ((1.0 + q1) * q2 - (1.0 - q1) * q3)) + 1.0;
+  return (int)(tmp + 0.5);
 }
 double distance(
     struct city *cities, int *path, int n,

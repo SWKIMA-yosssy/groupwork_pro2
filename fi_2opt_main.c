@@ -219,6 +219,7 @@ int main(void) {
   double time_limit = 1.034654; // 計算時間制限（秒）
   clock_t start_t, end_t;
   double utime;
+  double processing_time; // total processing time within time_limit
   char fname[128];
   FILE *fp;
   int buf;
@@ -321,6 +322,7 @@ int main(void) {
     if (utime > time_limit) {
       break;
     }
+    processing_time = utime;
 
     if (new_path_length < best_path_length) {
       best_path_length = new_path_length;
@@ -343,7 +345,7 @@ int main(void) {
            best_path[i] + 1); // +1 because data is starting from node number 1
   }
   printf("\nTotal Distance: %f\n", best_path_length);
-  printf("Calculation Time: %f seconds\n", utime);
+  printf("Calculation Time: %f seconds\n", processing_time);
   printf("Total number of attempts: %d\n", count);
   return 0;
 }

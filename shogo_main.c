@@ -297,6 +297,7 @@ int main(void) {
   double time_limit = 1.034654; // 計算時間制限（秒）
   clock_t start_t, end_t;
   double utime;
+  double processing_time; // total processing time within time_limit
   char fname[128];
   FILE *fp;
   int buf;
@@ -379,20 +380,17 @@ int main(void) {
       }
     }
 
-    // 2-optによる改善
-    two_opt(cities, new_path, N, &new_path_length, whether_geograph);
     // 3+2-optによる改善
-    for (i = 0; i < N * N; i++) { // 1000回繰り返して改善（適宜調整可能）
+    /*
+    for (i = 0; i < N * N; i++) { // N*N回繰り返して改善（適宜調整可能）
       choose_unique_random_numbers(N, random_node); // 連続しない3つの乱数を生成
       insertion_sort(random_node,
                      3); // random_node[0]<[1]<[2]となるようにsort
       improved = opt3_2_once(cities, new_path, path_size, &new_path_length,
                              random_node[0], random_node[1], random_node[2],
                              whether_geograph);
-    }
-    // this for roop search whole combinatio at once but it work less than
-    // just roop 1000times
-    /*
+    }*/
+    // this for roop search whole combinatio at once
     for (int i = 0; i < N - 2; i++) {
       for (int j = i + 1; j < N - 1; j++) {
         for (int k = j + 1; k < N; k++) {
@@ -400,7 +398,9 @@ int main(void) {
                                  i, j, k, whether_geograph);
         }
       }
-    }*/
+    }
+    // 2-optによる改善
+    two_opt(cities, new_path, N, &new_path_length, whether_geograph);
     for (i = 0; i < N - 1; i++) { // ###FOR DEBUG
       if (new_path[i] == new_path[i + 1]) {
         if (overlap_count == 0) {
@@ -418,6 +418,7 @@ int main(void) {
     if (utime > time_limit) {
       break;
     }
+    processing_time = utime;
 
     if (new_path_length < best_path_length) {
       best_path_length = new_path_length;
@@ -441,7 +442,7 @@ int main(void) {
   }
   // print head twice to show its tour
   printf("\nTotal Distance: %f\n", best_path_length);
-  printf("Calculation Time: %f seconds\n", utime);
+  printf("Calculation Time: %f seconds\n", processing_time);
   printf("Total number of attempts: %d\n", count);
   return 0;
 }

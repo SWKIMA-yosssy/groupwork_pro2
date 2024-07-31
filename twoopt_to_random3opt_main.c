@@ -390,8 +390,6 @@ int main(void) {
                              random_node[0], random_node[1], random_node[2],
                              whether_geograph);
     }
-    // 2-optによる改善
-    two_opt(cities, new_path, N, &new_path_length, whether_geograph);
     for (i = 0; i < N - 1; i++) { // ###FOR DEBUG
       if (new_path[i] == new_path[i + 1]) {
         if (overlap_count == 0) {
